@@ -38,11 +38,11 @@ class EmployeeModel extends Model
 
     public function position()
     {
-        return $this->belongsTo(PositionModel::class, 'position_id');
+        return $this->belongsTo(PositionModel::class, 'position_id')->where('status', '!=', 0);
     }
 
     public function division()
     {
-        return $this->belongsTo(DivisionModel::class, 'division_id');
-    }
+        return $this->belongsTo(DivisionModel::class, 'division_id')->where('status', '!=', 0);
+    }    
 }

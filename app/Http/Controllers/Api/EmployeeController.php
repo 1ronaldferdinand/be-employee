@@ -15,11 +15,52 @@ class EmployeeController extends Controller
 {
     public function index(Request $request)
     {
-        $employees = EmployeeModel::where('status', '!=', 0)
-                                    ->with(['position', 'division'])
-                                    ->orderby('name', 'asc')
-                                    ->get();
-        
+        // Mengambil parameter pencarian dari request
+        $searchQuery = $request->input('searchQuery');
+        $searchDivision = $request->input('searchDivision');
+        $searchPosition = $request->input('searchPosition');
+        $perPage = $request->input('perPage', 10); // Jumlah item per halaman, default 10
+
+        // Memulai query dengan menyaring karyawan berdasarkan status
+        $query = EmployeeModel::where('status', '!=', 0)
+                            ->with(['position', 'division'])
+                            ->orderBy('name', 'asc');
+
+        // Menambahkan filter pencarian berdasarkan query
+        if ($searchQuery) {
+            $query->where(function ($q) use ($searchQuery) {
+                $q->where('name', 'LIKE', '%' . $searchQuery . '%')
+                ->orWhere('code', 'LIKE', '%' . $searchQuery . '%')
+                ->orWhere('phone', 'LIKE', '%' . $searchQuery . '%')
+                ->orWhere('email', 'LIKE', '%' . $searchQuery . '%');
+            });
+        }
+
+        // Menambahkan filter pencarian berdasarkan division
+        if ($searchDivision) {
+            $query->whereHas('division', function ($q) use ($searchDivision) {
+                $q->where('name', $searchDivision);
+            });
+        }
+
+        // Menambahkan filter pencarian berdasarkan position
+        if ($searchPosition) {
+            $query->whereHas('position', function ($q) use ($searchPosition) {
+                $q->where('name', $searchPosition);
+            });
+        }
+
+        // Menjalankan query dengan pagination
+        $employees = $query->paginate($perPage);
+
+        // Mapping jika divisi atau posisi karyawan sudah dihapus
+        $employees->getCollection()->transform(function ($employee) {
+            $employee->position_name = $employee->position ? $employee->position->name : '-';
+            $employee->division_name = $employee->division ? $employee->division->name : '-';
+            return $employee;
+        });
+
+        // Membuat response JSON
         $response = ApiFormatter::createJson(200, 'Get employees success', $employees);
         return response()->json($response);
     }
