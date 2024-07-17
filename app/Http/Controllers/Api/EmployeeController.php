@@ -63,6 +63,16 @@ class EmployeeController extends Controller
                 $response = ApiFormatter::createJson(400, 'Employee code already exists');
                 return response()->json($response);
             }
+            
+            if ($params['phone']) {
+                $containsCountryCode = strpos($params['phone'], '+62') === 0; // Memeriksa apakah nomor telepon dimulai dengan '+62'
+                
+                if ((!$containsCountryCode && strlen($params['phone']) > 14) 
+                    || ($containsCountryCode && strlen($params['phone']) > 16)) {
+                    $response = ApiFormatter::createJson(400, 'Phone number exceeds the length');
+                    return response()->json($response);
+                }
+            }            
 
             $employee = [
                 'name'        => $params['name'],
@@ -148,6 +158,16 @@ class EmployeeController extends Controller
                 $response = ApiFormatter::createJson(400, 'Employee code already exists');
                 return response()->json($response);
             }
+
+            if ($params['phone']) {
+                $containsCountryCode = strpos($params['phone'], '+62') === 0; // Memeriksa apakah nomor telepon dimulai dengan '+62'
+                
+                if ((!$containsCountryCode && strlen($params['phone']) > 14) 
+                    || ($containsCountryCode && strlen($params['phone']) > 16)) {
+                    $response = ApiFormatter::createJson(400, 'Phone number exceeds the length');
+                    return response()->json($response);
+                }
+            }            
             
             $employee = [
                 'name'        => $params['name'],
